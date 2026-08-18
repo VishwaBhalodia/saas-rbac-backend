@@ -27,12 +27,138 @@ Organization → Users (ADMIN/MEMBER) → Projects → Tasks (createdBy, assigne
 
 Requires Java 21, Maven, MySQL. Copy `application.properties.example` → `application.properties`, fill in your DB credentials, then:
 
-./mvnw spring-boot:run
+./mvnw spring-boot:runc
 
-## Key Endpoints
+## Example Requests
 
-`POST /auth/register` · `POST /auth/login` · `POST /projects` · `GET /projects` · `POST /tasks` · `PATCH /tasks/{id}/status` · `DELETE /tasks/{id}`
+All endpoints except `/auth/register` and `/auth/login` require a header:
 
+Authorization: Bearer <token>
+
+(the `token` value comes from the response of Register or Login)
+
+---
+
+### Register
+`POST /auth/register`
+```json
+{
+  "orgName": "Acme Corp",
+  "fullName": "Jane Doe",
+  "email": "jane@acme.com",
+  "password": "yourpassword"
+}
+```
+**Response:**
+```json
+{
+  "token": "eyJhbGciOi...",
+  "email": "jane@acme.com",
+  "role": "ADMIN",
+  "orgId": 1
+}
+```
+
+---
+
+### Login
+`POST /auth/login`
+```json
+{
+  "email": "jane@acme.com",
+  "password": "yourpassword"
+}
+```
+
+---
+
+### Add a Member (Admin only)
+`POST /users`
+*Requires Authorization header (Admin's token)*
+```json
+{
+  "fullName": "Team Member",
+  "email": "member@acme.com",
+  "password": "memberpass"
+}
+```
+
+---
+
+### Create a Project
+`POST /projects`
+*Requires Authorization header*
+```json
+{
+  "name": "Website Revamp",
+  "description": "Redesign the company website"
+}
+```
+
+---
+
+### List Projects
+`GET /projects`
+*Requires Authorization header — no body needed*
+
+---
+
+### Get a Single Project
+`GET /projects/{id}`
+*Requires Authorization header — no body needed*
+Example: `GET /projects/1`
+
+---
+
+### Delete a Project (Admin only)
+`DELETE /projects/{id}`
+*Requires Authorization header — no body needed*
+
+---
+
+### Create a Task
+`POST /tasks`
+*Requires Authorization header*
+```json
+{
+  "projectId": 1,
+  "title": "Design homepage mockup",
+  "description": "Create initial wireframes",
+  "assignedToUserId": null
+}
+```
+*(`assignedToUserId` is optional — omit or set to null if unassigned)*
+
+---
+
+### List Tasks
+`GET /tasks`
+*Requires Authorization header — no body needed*
+
+---
+
+### Get a Single Task
+`GET /tasks/{id}`
+*Requires Authorization header — no body needed*
+
+---
+
+### Update Task Status
+`PATCH /tasks/{id}/status`
+*Requires Authorization header*
+```json
+{
+  "status": "IN_PROGRESS"
+}
+```
+*(valid values: `TODO`, `IN_PROGRESS`, `DONE`)*
+
+---
+
+### Delete a Task
+`DELETE /tasks/{id}`
+*Requires Authorization header — no body needed*
+*(Allowed for: the task's creator, its assignee, or an Admin)*
 ## Future Improvements
 
 - Automated tests (JUnit + Mockito)
